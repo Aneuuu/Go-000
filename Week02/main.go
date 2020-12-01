@@ -1,21 +1,17 @@
 package main
 
-import "io"
-
-type errWriter struct {
-	io.Writer
-	err error
-}
-
-func (e *errWriter) Write(buf []byte) (int, error) {
-	if e.err != nil {
-		return 0, nil
-	}
-	var n int
-	n, e.err = e.Writer.Write(buf)
-	return n, nil
-}
+import (
+	"Go-000/Week02/api"
+	"fmt"
+	xerrors "github.com/pkg/errors"
+	"os"
+)
 
 func main() {
-
+	err := api.Run()
+	if err != nil {
+		fmt.Printf("original error: %v \n", xerrors.Cause(err))
+		fmt.Printf("stack error: \n+%v\n", err)
+	}
+	os.Exit(129)
 }
