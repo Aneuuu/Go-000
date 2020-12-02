@@ -28,7 +28,7 @@ func QueryUser(ID uint64) (*Users, error, int) {
 	var u = new(Users)
 	result := db.Where("id = ?", ID).Find(&u).Take(&u)
 	if result.Error != nil {
-		return u, xerrors.WithMessage(result.Error, "Query Not Found!"), 500
+		return u, xerrors.Wrap(result.Error, "Query Not Found!"), 500
 	}
 	return u, nil, 200
 }
