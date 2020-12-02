@@ -17,7 +17,7 @@ var (
 )
 
 func init() {
-	dsn := "root:ys@qq.com@tcp(10.1.2.230:3306)/demorm?charset=utf8&parseTime=True&loc=Local"
+	dsn := "root:123456@tcp(127.0.0.1:3306)/demo?charset=utf8&parseTime=True&loc=Local"
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		xerrors.Wrap(err, "can't connect to database")
