@@ -30,8 +30,8 @@ func (b *b) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *server) start() error {
 	return s.ListenAndServe()
 }
-func (s *server) stop() error {
-	return s.Shutdown(context.Background())
+func (s *server) stop(ctx context.Context) error {
+	return s.Shutdown(ctx)
 }
 
 func newServer(addr string, handler http.Handler) *server {
@@ -69,8 +69,8 @@ func main() {
 		for sig := range sigs {
 			switch sig {
 			case syscall.SIGINT, syscall.SIGTERM:
-				_ = server1.stop()
-				_ = server2.stop()
+				_ = server1.stop(ctx)
+				_ = server2.stop(ctx)
 				return errors.New("all stop")
 			default:
 				return errors.New("other quit")
