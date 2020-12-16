@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"golang.org/x/sync/errgroup"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
+	
+	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 )
 
 type server struct {
@@ -27,11 +29,12 @@ func (b *b) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "b")
 }
 
-func (s *server) start() error {
+func (s *server) start(ctx context.Context) error {
+	go func() {
+		<-ctx.Done()
+		_ = s.Shutdown(ctx)
+	}()
 	return s.ListenAndServe()
-}
-func (s *server) stop() error {
-	return s.Shutdown(context.Background())
 }
 
 func newServer(addr string, handler http.Handler) *server {
@@ -43,44 +46,46 @@ func newServer(addr string, handler http.Handler) *server {
 }
 
 func main() {
-	a := new(a)
+	//a := new(a)
 	b := new(b)
-
-
+	
 	sigs := make(chan os.Signal)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	server1 := newServer("127.0.0.1:8080", a)
-	server2 := newServer("127.0.0.1:8081", b)
-
+	//stop := make(chan struct{})
+	
+	//server1 := nServer("127.0.0.1:8008", a)
+	server2 := newServer("127.0.0.1:8009", b)
+	
 	g, ctx := errgroup.WithContext(context.Background())
-
-	g.Go(func() error {
-		fmt.Println("start server1")
-		return server1.start()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	
+	g.Go(func() error{
+		time.Sleep(5*time.Second)
+		return errors.New("manual exit")
 	})
-
+	
+	//g.Go(func() error {
+	//	fmt.Println("start server1")
+	//	return server1.start(ctx, stop)
+	//})
+	
 	g.Go(func() error {
 		fmt.Println("start server2")
-		return server2.start()
+		return server2.start(ctx)
 	})
-
-	g.Go(func() error {
-		for sig := range sigs {
-			switch sig {
-			case syscall.SIGINT, syscall.SIGTERM:
-				_ = server1.stop()
-				_ = server2.stop()
-				return errors.New("all stop")
-			default:
-				return errors.New("other quit")
+	
+	g.Go(func() error{
+		for {
+			select {
+			case <-ctx.Done():
+				fmt.Println("haha")
+				return ctx.Err()
 			}
 		}
-		return nil
 	})
-
+	
 	if err := g.Wait(); err != nil {
-		fmt.Println(err)
+		fmt.Println("wait error", err)
 	}
-	fmt.Println(ctx.Err())
 }
