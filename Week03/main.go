@@ -46,29 +46,26 @@ func newServer(addr string, handler http.Handler) *server {
 }
 
 func main() {
-	//a := new(a)
+	a := new(a)
 	b := new(b)
 	
 	sigs := make(chan os.Signal)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	//stop := make(chan struct{})
 	
-	//server1 := nServer("127.0.0.1:8008", a)
+	server1 := newServer("127.0.0.1:8008", a)
 	server2 := newServer("127.0.0.1:8009", b)
 	
 	g, ctx := errgroup.WithContext(context.Background())
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 	
 	g.Go(func() error{
 		time.Sleep(5*time.Second)
 		return errors.New("manual exit")
 	})
 	
-	//g.Go(func() error {
-	//	fmt.Println("start server1")
-	//	return server1.start(ctx, stop)
-	//})
+	g.Go(func() error {
+		fmt.Println("start server1")
+		return server1.start(ctx)
+	})
 	
 	g.Go(func() error {
 		fmt.Println("start server2")
@@ -81,6 +78,8 @@ func main() {
 			case <-ctx.Done():
 				fmt.Println("haha")
 				return ctx.Err()
+			default:
+				return errors.New("other quit")
 			}
 		}
 	})
