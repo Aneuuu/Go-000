@@ -2,8 +2,8 @@ package main
 
 import (
 	"Go-000/Week04/api"
-	"Go-000/Week04/biz"
-	"Go-000/Week04/dao"
+	"Go-000/Week04/internal/biz"
+	"Go-000/Week04/internal/dao"
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
